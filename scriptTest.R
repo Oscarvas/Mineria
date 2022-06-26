@@ -52,11 +52,54 @@ datos$AutonomosPtge<-replace(datos$AutonomosPtge, which((datos$AutonomosPtge < 0
 
 #estudio de la variable de CCAA
 freq(datos$CCAA)
+# reducimos su dimension acorde a criterios geograficos
+datos$CCAA<-car::recode(datos$CCAA, "c('Andalucía','Melilla','Ceuta','Canarias')='AndalucíaAfrica';c('ComValenciana','Murcia','Baleares')='EsteBalear';c('Navarra','PaísVasco','Rioja','Cantabria','Asturias')='CachopoVino'")
 
 #nueva verificacion de los datos
 summary(datos)
 
-aggregate(PcteNulos~CCAA, data = datos, mean)
-boxplot_cuantcuali(datos$PcteNulos,datos$CCAA,"Nulos")
+#aggregate(PcteNulos~CCAA, data = datos, mean)
+#boxplot_cuantcuali(datos$PcteNulos,datos$CCAA,"Nulos")
 
-datos$CCAA<-car::recode(datos$CCAA, "c('Andalucía','Melilla','Ceuta','Canarias')='AndalucíaAfrica';c('ComValenciana','Murcia','Baleares')='EsteBalear';c('Navarra','PaísVasco','Rioja','Cantabria','Asturias')='CachopoVino'")
+# Tratamiento de datos atípicos
+varObjCont<-datos$PcteNulos
+input<-as.data.frame(datos[,-c(1,25)])
+row.names(input)<-datos$CodigoINE
+
+# bucle para gestionar los datos atipicos
+for (i in names(which(sapply(input, class)=="numeric"))){
+  outliers(paste0("input$",i))
+}
+
+# se eliminan los outliers inferiores al 3% (max 2,4)
+
+# gestion de datos ausentes:
+input$prop_missings<-rowMeans(is.na(input))
+summary(input$prop_missings)
+# no hay ningún municipio con más del 50% de datos ausentes
+
+
+# verificar nulos de cada variable
+(prop_missingsVars<-colMeans(is.na(input)))
+# no hay ninguna variable con más de un 5%
+
+input[,as.vector(which(sapply(input, class)=="numeric"))]<-
+  sapply(Filter(is.numeric, input),function(x) impute(x,"random"))
+input[,as.vector(which(sapply(input, class)=="factor"))]<-
+  sapply(Filter(is.factor, input),function(x) impute(x,"random"))
+# Se cambia el tipo de factor a character al imputar, así que hay que corregirlo
+input[,as.vector(which(sapply(input, class)=="character"))] <-
+  lapply(input[,as.vector(which(sapply(input, class)=="character"))] , as.factor)
+
+
+length(unique(input$prop_missings)) # hay 6 valores distintos
+input$prop_missings<-as.factor(input$prop_missings)
+freq(input$prop_missings)
+
+
+input$prop_missings<-car::recode(input$prop_missings, "c(0.0869565217391304,0.130434782608696,0.173913043478261,0.434782608695652)='>0.08';c(0.0434782608695652)='0.04'")
+freq(input$prop_missings)
+
+summary(input)
+
+saveRDS(data.frame(varObjCont,input),"eleccionesDep")
