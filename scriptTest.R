@@ -15,17 +15,19 @@ library(tidyr)
 original <- read_excel("datosEleccionesEuropeas2019.xlsx")
 
 # rechazo el primer conjunto de variables que no voy a usar
-datos <- as.data.frame(original[,-(6:12)])
+datos <- as.data.frame(original)
 
 # incluyo mis variables objetivo
-datos$PcteNulos <- datos$Nulos / datos$VotosEmitidos * 100
-datos$PSOE_prop<-datos$PSOE/datos$VotosEmitidos*100
+#datos$PcteNulos <- datos$Nulos / datos$VotosEmitidos * 100
+#datos$PSOE_prop<-datos$PSOE/datos$VotosEmitidos*100
+
+datos$PcteAbstenciones <- datos$Abstenciones / datos$Censo * 100
 
 # cosas que pueden influir en los %nulos: densidad poblacional, partido, tipo de actividad economica del municipio
 
 #datos$NuloSobreBlanco <- ifelse(datos$Nulos > datos$Blancos, 1, 0)
 
-datos <- as.data.frame(datos[,-(2:5)])
+datos <- as.data.frame(datos[,-(2:12)])
 
 # primer estudio de las variables
 str(datos)
@@ -62,7 +64,7 @@ summary(datos)
 #boxplot_cuantcuali(datos$PcteNulos,datos$CCAA,"Nulos")
 
 # Tratamiento de datos atípicos
-varObjCont<-datos$PcteNulos
+varObjCont<-datos$PcteAbstenciones
 input<-as.data.frame(datos[,-c(1,25)])
 row.names(input)<-datos$CodigoINE
 
@@ -101,5 +103,28 @@ input$prop_missings<-car::recode(input$prop_missings, "c(0.0869565217391304,0.13
 freq(input$prop_missings)
 
 summary(input)
+
+saveRDS(data.frame(varObjCont,input),"eleccionesDep")
+###################### evaluar resultados
+
+boxplot_cuantcuali(varObjCont,input$PartidoCCAA,"varObjCont")
+boxplot_cuantcuali(varObjCont,input$CCAA,"varObjCont")
+
+dispersion(Filter(is.numeric, input),varObjCont)
+corrplot.mixed(cor(data.frame(varObjCont,Filter(is.numeric, input)),
+                   use="pairwise", method="pearson"), tl.pos = "lt",
+               lower = "number", upper = "ellipse",lower.col = "black", number.cex = .8, number.digits = 1)
+
+# estudiando las graficas tenemos:
+# Existe relación positiva con las siguientes variables: Menores de 19, % universitario y personas inmueble
+# relación negativa con: Mayores de 65 y Municipios con mayor explotación agricola
+
+# Geograficamente: Menos abstenciones en castillaMancha y extremadura (menor al 25%)
+# Mayor abstencion en Galicia y Madrid (sobre el 25%)
+par(mar=c(12, 5.1, 4.1, 1.1)) #Para ajustar los márgenes del gráfico
+input$aleatorio<-runif(nrow(input))
+input$aleatorio2<-runif(nrow(input))
+graficoVcramer(input,varObjCont)
+
 
 saveRDS(data.frame(varObjCont,input),"eleccionesDep")
