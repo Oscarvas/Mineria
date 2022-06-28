@@ -128,3 +128,147 @@ graficoVcramer(input,varObjCont)
 
 
 saveRDS(data.frame(varObjCont,input),"eleccionesDep")
+
+##########################################################################
+################################## Regresion lineal
+##########################################################################
+#install.packages("caret")
+library(caret)
+#library(car)
+
+datos<-readRDS("eleccionesDep")
+
+summary(datos)
+
+# train-test
+set.seed(12345)
+trainIndex <- createDataPartition(datos$varObjCont, p=0.8, list=FALSE)
+data_train <- datos[trainIndex,]
+data_test <- datos[-trainIndex,]
+
+#Construyo un modelo preliminar con todas las variables
+modelo1<-lm(varObjCont~.,data=data_train)
+summary(modelo1)
+
+# evaluamos el modelo con la particion de prueba
+Rsq(modelo1,"varObjCont",data_train) # 0.3072121
+
+Rsq(modelo1,"varObjCont",data_test) # 0.2685207
+
+# en el caso de que r2 valga 1, significa que la suma de errores es 0 y por tanto tenemos un modelo perfecto
+# el modelo será mejor si el r2 del train y test se parecen, ya que tiene menos varianza
+# par(mar=c(7, 9, 4.1, 2.1))
+par(mar=c(3, 12, 4.1, 2.1))
+importanciaVariables(modelo1)
+
+modelo2<-lm(varObjCont~CCAA+Censo+UnemploymentPtge+ForeignersPtge+Age_under19_Ptge+Age_over65_Ptge+ConstructionUnemploymentPtge+
+              prop_missings+UniversityPtge+UnemployMore40_Ptge+ServicesUnemploymentPtge,data=data_train)
+Rsq(modelo2,"varObjCont",data_train)
+## [1] 0.2465246
+Rsq(modelo2,"varObjCont",data_test)
+## [1] 0.2199156
+importanciaVariables(modelo2)
+
+modelo3<-lm(varObjCont~CCAA+Censo+Population+Age_under19_Ptge+Age_over65_Ptge+
+              ForeignersPtge+UniversityPtge+Empresas+
+              Densidad+PersonasInmueble+Explotaciones+
+              PartidoCCAA+UnemploymentPtge+WomenUnemploymentPtge+UnemployLess25_Ptge+
+              UnemployMore40_Ptge+AgricultureUnemploymentPtge+
+              ConstructionUnemploymentPtge+ServicesUnemploymentPtge+
+              prop_missings,data=data_train)
+Rsq(modelo3,"varObjCont",data_train)
+## [1] 0.306887
+Rsq(modelo3,"varObjCont",data_test)
+## [1] 0.2691425
+importanciaVariables(modelo3)
+
+# eliminadas modelo3: womanPopulation, autonomosPtge, IndustryUnemploymentPtge, aleatorio, aleatorio2, PobChange_pct
+
+
+modelo4<-lm(varObjCont~CCAA+Censo+Population+Age_under19_Ptge+Age_over65_Ptge+
+              ForeignersPtge++Empresas+
+              Densidad+PersonasInmueble+Explotaciones+
+              PartidoCCAA+UnemploymentPtge+UnemployLess25_Ptge+
+              AgricultureUnemploymentPtge+
+              ConstructionUnemploymentPtge+
+              prop_missings,data=data_train)
+Rsq(modelo4,"varObjCont",data_train)
+## [1] 0.3059955
+Rsq(modelo4,"varObjCont",data_test)
+## [1] 0.268138
+importanciaVariables(modelo4)
+
+# elimino del m4 : ServicesUnemploymentPtge, UniversityPtge, UnemployMore40_Ptge, WomenUnemploymentPtge
+
+# a partir del modelo 3 empiezo a ver que el sector agrícola empieza a cobrar más importancia
+
+modelo5<-lm(varObjCont~CCAA+Censo+Population+Age_under19_Ptge+Age_over65_Ptge+
+              ForeignersPtge++Empresas+
+              Densidad+PersonasInmueble+Explotaciones+
+              PartidoCCAA+UnemploymentPtge+
+              AgricultureUnemploymentPtge+
+              ConstructionUnemploymentPtge,data=data_train)
+Rsq(modelo5,"varObjCont",data_train)
+## [1] 0.3043884
+Rsq(modelo5,"varObjCont",data_test)
+## [1] 0.2718368
+importanciaVariables(modelo5) # eliminada: UnemployLess25_Ptge, prop_missings
+
+# introducimos interacciones
+modelo6<-lm(varObjCont~CCAA+Censo+Population+Age_under19_Ptge+Age_over65_Ptge+
+              ForeignersPtge++Empresas+
+              Densidad+PersonasInmueble+Explotaciones+
+              PartidoCCAA+UnemploymentPtge+
+              AgricultureUnemploymentPtge+
+              ConstructionUnemploymentPtge+
+              AgricultureUnemploymentPtge:Explotaciones,data=data_train)
+Rsq(modelo6,"varObjCont",data_train)
+## [1] 0.3043884
+Rsq(modelo6,"varObjCont",data_test)
+## [1] 0.2718368
+importanciaVariables(modelo6) # desempleo agricultura con actividad media agricultura (oximoron)
+
+modelo7<-lm(varObjCont~CCAA+Censo+Population+Age_under19_Ptge+Age_over65_Ptge+
+              ForeignersPtge++Empresas+
+              Densidad+PersonasInmueble+Explotaciones+
+              PartidoCCAA+UnemploymentPtge+
+              AgricultureUnemploymentPtge+
+              ConstructionUnemploymentPtge+
+              CCAA:Explotaciones,data=data_train)
+Rsq(modelo7,"varObjCont",data_train)
+## [1] 0.3214676
+Rsq(modelo7,"varObjCont",data_test)
+## [1] 0.2843576
+importanciaVariables(modelo7) # comprobamos que las CCAA con más actividad agrícola mejoran el modelo
+
+modelo8<-lm(varObjCont~CCAA+Censo+Population+Age_under19_Ptge+Age_over65_Ptge+
+              ForeignersPtge++Empresas+
+              Densidad+PersonasInmueble+Explotaciones+
+              PartidoCCAA+UnemploymentPtge+
+              AgricultureUnemploymentPtge+
+              ConstructionUnemploymentPtge+
+              Age_under19_Ptge:Age_over65_Ptge,data=data_train)
+Rsq(modelo8,"varObjCont",data_train)
+## [1] 0.3274342
+Rsq(modelo8,"varObjCont",data_test)
+## [1] 0.2898215
+importanciaVariables(modelo8) # comprobamos como se comportan los extremos poblacionales
+
+modelos<-list(modelo1,modelo2,modelo3,modelo4,modelo5,modelo6,modelo7,modelo8)
+sapply(modelos,function(x) x$rank) 
+# [1] 37 21 31 27 24 25 33 25
+
+sapply(modelos,function(x) Rsq(x,"varObjCont",data_train))
+# [1] 0.3072121 0.2465246 0.3068870 0.3059955 0.3043884 0.3043988 0.3214676 0.3274342
+
+sapply(modelos,function(x) Rsq(x,"varObjCont",data_test))
+# [1] 0.2685207 0.2199156 0.2691425 0.2681380 0.2718368 0.2716129 0.2843576 0.2898215
+
+
+# Diferencias de los modelos entre train y test
+# [1] 0.0386914 0.0266090 0.0377445 0.0378575 0.0325516 0.0327859 0.0371100 0.0376127
+
+# Aunque los resultados arrojan el modelo2 como más simple, elijo el modelo5 por presentar un r2 algo más elevado
+# y tener la siguiente varianza reducida
+
+coef(modelo5)
