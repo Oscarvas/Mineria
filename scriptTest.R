@@ -290,4 +290,89 @@ names(discCont)<-paste("disc", names(discCont), sep = "_")
 
 apply(discCont,2,freq)
 
-# disc_UnemployLess25_Ptge,disc_UnemployMore40_Ptge,disc_AgricultureUnemploymentPtge ,disc_IndustryUnemploymentPtge,disc_ServicesUnemploymentPtge, disc_AutonomosPtge
+# consideramos la reagrupacion de aquellos valores inferiores al 4.2%
+# disc_Age_over65_Ptge
+#disc_UniversityPtge
+#disc_Empresas
+#disc_UnemployLess25_Ptge
+#disc_UnemployMore40_Ptge
+#disc_AgricultureUnemploymentPtge
+#disc_IndustryUnemploymentPtge
+#disc_AutonomosPtge
+
+aggregate(varObjCont, by=list(discCont$disc_Age_over65_Ptge), mean)
+discCont$disc_Age_over65_Ptge<-car::recode(discCont$disc_Age_over65_Ptge,
+                                        "c('(29,30.1]','(30.1,33.9]')='(29,33.9]'")
+freq(discCont$disc_Age_over65_Ptge)
+##
+freq(discCont$disc_UniversityPtge)
+aggregate(varObjCont, by=list(discCont$disc_UniversityPtge), mean)
+discCont$disc_UniversityPtge<-car::recode(discCont$disc_UniversityPtge,
+                                           "c('(7.94,9.94]','(9.94,10]')='(7.94,10]'")
+freq(discCont$disc_UniversityPtge)
+###
+freq(discCont$disc_Empresas)
+aggregate(varObjCont, by=list(discCont$disc_Empresas), mean)
+discCont$disc_Empresas<-car::recode(discCont$disc_Empresas,
+                                          "c('(56.3,56.9]','(56.9,62.6]')='(56.3,62.6]'")
+freq(discCont$disc_Empresas)
+#########
+freq(discCont$disc_UnemployLess25_Ptge)
+aggregate(varObjCont, by=list(discCont$disc_UnemployLess25_Ptge), mean)
+discCont$disc_UnemployLess25_Ptge<-car::recode(discCont$disc_UnemployLess25_Ptge,
+                                    "c('(5.49,6.43]','(6.43,6.97]')='(5.49,6.97]'")
+freq(discCont$disc_UnemployLess25_Ptge)
+##########
+freq(discCont$disc_UnemployMore40_Ptge)
+aggregate(varObjCont, by=list(discCont$disc_UnemployMore40_Ptge), mean)
+discCont$disc_UnemployMore40_Ptge<-car::recode(discCont$disc_UnemployMore40_Ptge,
+                                               "c('(51.1,52.3]','(52.3,55.1]')='(51.1,55.1]'")
+freq(discCont$disc_UnemployMore40_Ptge)
+##########
+freq(discCont$disc_AgricultureUnemploymentPtge)
+aggregate(varObjCont, by=list(discCont$disc_AgricultureUnemploymentPtge), mean)
+discCont$disc_AgricultureUnemploymentPtge<-car::recode(discCont$disc_AgricultureUnemploymentPtge,
+                                               "c('(5.44,6.77]','(6.77,7.47]','(7.47,7.6]')='(5.44,7.6]'")
+freq(discCont$disc_AgricultureUnemploymentPtge)
+################
+freq(discCont$disc_IndustryUnemploymentPtge)
+aggregate(varObjCont, by=list(discCont$disc_IndustryUnemploymentPtge), mean)
+discCont$disc_IndustryUnemploymentPtge<-car::recode(discCont$disc_IndustryUnemploymentPtge,
+                                               "c('(6.54,8.74]','(8.74,9.65]')='(6.54,9.65]'")
+freq(discCont$disc_IndustryUnemploymentPtge)
+##############
+freq(discCont$disc_AutonomosPtge)
+aggregate(varObjCont, by=list(discCont$disc_AutonomosPtge), mean)
+discCont$disc_AutonomosPtge<-car::recode(discCont$disc_AutonomosPtge,
+                                               "c('(11,11.4]','(11.4,11.7]')='(11,11.7]'")
+freq(discCont$disc_AutonomosPtge)
+
+
+### Por último, unimos en un mismo dataFrame la variable objetivo y las variables input originales, transformadas
+# y las discretizadas:
+datos_todocont<-data.frame(varObjCont,input,TransfCont,discCont)
+names(datos_todocont)
+
+## seleccion de variables automaticas
+set.seed(12345)
+trainIndex <- createDataPartition(datos_todocont$varObjCont, p=0.8, list=FALSE)
+data_train <- datos_todocont[trainIndex,]
+data_test <- datos_todocont[-trainIndex,]
+
+
+# recuperamos el mejor modelo manual obtenido antes (modelo2)
+modeloManual<-lm(varObjCont~CCAA+Censo+UnemploymentPtge+ForeignersPtge+Age_under19_Ptge+Age_over65_Ptge+ConstructionUnemploymentPtge+
+              prop_missings+UniversityPtge+UnemployMore40_Ptge+ServicesUnemploymentPtge+Explotaciones,data=data_train)
+
+Rsq(modeloManual,"varObjCont",data_train)  # 0.2641553
+Rsq(modeloManual,"varObjCont",data_test) # 0.2348144
+modeloManual$rank # 22
+
+# Selección de variables con las input originales (eliminar trace=F para observar el proceso de la selección):
+null<-lm(varObjCont~1, data=data_train) #Modelo minimo
+full<-lm(varObjCont~., data=data_train[,c(1:27)])
+
+#
+modeloStepAIC<-step(null, scope=list(lower=null, upper=full), direction="both")
+Rsq(modeloStepAIC,"varObjCont",data_test) # 0.2688144
+modeloStepAIC$rank # 29
