@@ -382,6 +382,11 @@ modeloBackAIC<-step(full, scope=list(lower=null, upper=full), direction="backwar
 Rsq(modeloBackAIC,"varObjCont",data_test) # 0.2691425
 modeloBackAIC$rank # 31
 
+# modelo forward
+modeloForwdAIC<-step(full, scope=list(lower=null, upper=full), direction="forward")
+Rsq(modeloForwdAIC,"varObjCont",data_test) # 0.2685207
+modeloForwdAIC$rank # 37
+
 #### ambos modelos AIC son bastante similares
 
 modeloStepBIC<-step(null, scope=list(lower=null, upper=full), direction="both",
@@ -394,7 +399,13 @@ modeloBackBIC<-step(full, scope=list(lower=null, upper=full), direction="backwar
 Rsq(modeloBackBIC,"varObjCont",data_test) # 0.2718368
 modeloBackBIC$rank # 24
 
-##### ambos modelos BIC son iguales
+# modelo forward - mismo resultado con AIC
+modeloForwdBIC<-step(full, scope=list(lower=null, upper=full), direction="forward",
+                     k=log(nrow(data_train)))
+Rsq(modeloForwdBIC,"varObjCont",data_test) # 0.2685207
+modeloForwdBIC$rank # 37
+
+##### ambos modelos BIC son iguales - fdrwr se va en parametros y no mejora
 
 ## Selección de variables con las input originales e interacciones:
 
@@ -407,11 +418,37 @@ modeloStepAIC_int<-step(null, scope=list(lower=null, upper=fullInt), direction="
 Rsq(modeloStepAIC_int,"varObjCont",data_test) # 0.3547828
 modeloStepAIC_int$rank # 161 ------- estamos locos
 
+## back
+modeloBackAIC_int<-step(null, scope=list(lower=null, upper=fullInt), direction="backward",
+                        trace=F)
+# en mi máquina tarda unos 3-4 minutos
+Rsq(modeloBackAIC_int,"varObjCont",data_test) # NA
+modeloBackAIC_int$rank # 1
+
+### forwd
+modeloForwdAIC_int<-step(null, scope=list(lower=null, upper=fullInt), direction="forward",
+                        trace=F)
+# en mi máquina tarda unos 3-4 minutos
+Rsq(modeloForwdAIC_int,"varObjCont",data_test) # 0.3547828
+modeloForwdAIC_int$rank # 161
+
 ##
 modeloStepBIC_int<-step(null, scope=list(lower=null, upper=fullInt), direction="both",
                         k=log(nrow(data_train))) # 45 segundos
 Rsq(modeloStepBIC_int,"varObjCont",data_test) # 0.3389092
 modeloStepBIC_int$rank # 46 .....
+
+# bck
+modeloBckBIC_int<-step(null, scope=list(lower=null, upper=fullInt), direction="backward",
+                        k=log(nrow(data_train))) # 45 segundos
+Rsq(modeloBckBIC_int,"varObjCont",data_test) # na
+modeloBckBIC_int$rank # 1
+
+# fwd
+modeloFwdBIC_int<-step(null, scope=list(lower=null, upper=fullInt), direction="forward",
+                        k=log(nrow(data_train))) # 45 segundos
+Rsq(modeloFwdBIC_int,"varObjCont",data_test) # 0.3412366
+modeloFwdBIC_int$rank # 52 .....
 
 #Selección de variables con las input originales y transformadas:
 fullT<-lm(varObjCont~., data=data_train[,c(1:46)])
@@ -424,6 +461,18 @@ modeloStepBIC_trans<-step(null, scope=list(lower=null, upper=fullT), direction="
                           k=log(nrow(data_train)),trace=F)
 Rsq(modeloStepBIC_trans,"varObjCont",data_test) # 0.3736192
 modeloStepBIC_trans$rank # 23 .... bastaaaante mejor al modelo manual elegido
+
+# bic back
+modeloBckBIC_trans<-step(null, scope=list(lower=null, upper=fullT), direction="backward",
+                          k=log(nrow(data_train)),trace=F)
+Rsq(modeloBckBIC_trans,"varObjCont",data_test) # NA
+modeloBckBIC_trans$rank # 1
+
+## bic fwd
+modeloFwdBIC_trans<-step(null, scope=list(lower=null, upper=fullT), direction="forward",
+                          k=log(nrow(data_train)),trace=F)
+Rsq(modeloFwdBIC_trans,"varObjCont",data_test) # 0.3738777
+modeloFwdBIC_trans$rank # 24 .... parecido al stepwise
 
 
 ## Selección de variables con las input originales, transformadas y discretizadas:
@@ -438,6 +487,18 @@ modeloStepBIC_todo<-step(null, scope=list(lower=null, upper=fulltodo), direction
 Rsq(modeloStepBIC_todo,"varObjCont",data_test) # 0.3830574
 modeloStepBIC_todo$rank # 33
 
+# back bic
+modeloBckBIC_todo<-step(null, scope=list(lower=null, upper=fulltodo), direction="backward",
+                         k=log(nrow(data_train)),trace=F)
+Rsq(modeloBckBIC_todo,"varObjCont",data_test) # NA
+modeloBckBIC_todo$rank # 1
+
+# fwd bic
+modeloFwdBIC_todo<-step(null, scope=list(lower=null, upper=fulltodo), direction="forward",
+                         k=log(nrow(data_train)),trace=F)
+Rsq(modeloFwdBIC_todo,"varObjCont",data_test) # 0.3835465
+modeloFwdBIC_todo$rank # 34
+
 
 ### Selección de variables con las input originales, transformadas, discretizadas e interacciones (pruebo sólo
 #con BIC pues es más exigente con el número de parámetros y, por tanto, tarda menos en ejecutarse,
@@ -449,6 +510,18 @@ modeloStepBIC_todoInt<-step(null, scope=list(lower=null, upper=fullIntT), direct
 Rsq(modeloStepBIC_todoInt,"varObjCont",data_test) # 0.4043833
 modeloStepBIC_todoInt$rank # 40
 
+# back bic
+modeloBckBIC_todoInt<-step(null, scope=list(lower=null, upper=fullIntT), direction="backward",
+                            k=log(nrow(data_train)),trace=F) # 3-4 minutos de ejecucion
+Rsq(modeloBckBIC_todoInt,"varObjCont",data_test) # NA
+modeloBckBIC_todoInt$rank # 1
+
+# fwd bic
+modeloFwdBIC_todoInt<-step(null, scope=list(lower=null, upper=fullIntT), direction="forward",
+                            k=log(nrow(data_train)),trace=F) # 3-4 minutos de ejecucion
+Rsq(modeloFwdBIC_todoInt,"varObjCont",data_test) # 0.4043833
+modeloFwdBIC_todoInt$rank # 40
+
 #AIC - Abortado--- cómputo superior a 10 minutos...
 modeloStepAIC_todoInt<-step(null, scope=list(lower=null, upper=fullIntT), direction="both",trace=F) # 3-4 minutos de ejecucion
 Rsq(modeloStepAIC_todoInt,"varObjCont",data_test) # 
@@ -457,17 +530,23 @@ modeloStepAIC_todoInt$rank #
 # Comparación de modelos de regresión lineal
 modelos<-list(modeloManual,modeloStepAIC,modeloStepBIC,modeloStepAIC_int,modeloStepBIC_int,
               modeloStepAIC_trans,modeloStepBIC_trans,modeloStepAIC_todo,modeloStepBIC_todo,
-              modeloStepBIC_todoInt) #incluir los modelos que se desee comparar
+              modeloStepBIC_todoInt,modeloForwdBIC,modeloForwdAIC_int,modeloFwdBIC_int,
+              modeloFwdBIC_trans,modeloFwdBIC_todo,modeloFwdBIC_todoInt) #incluir los modelos que se desee comparar
 
 sapply(modelos,function(x) x$rank)
 # [1]  22  29  24 161  46  36  23  60  33  40
+# 22  29  24 161  46  36  23  60  33  40  37 161  52  24  34  40
 
 sapply(modelos,function(x) Rsq(x,"varObjCont",data_test))
 #  [1] 0.2348144 0.2688144 0.2718368 0.3547828 0.3389092 0.3774476 0.3736192 0.3840780 0.3830574 0.4043833
+#  [1] 0.2348144 0.2688144 0.2718368 0.3547828 0.3389092 0.3774476 0.3736192 0.3840780 0.3830574 0.4043833 0.2685207 0.3547828
+#[13] 0.3412366 0.3738777 0.3835465 0.4043833
+
 
 sapply(modelos,function(x) Rsq(x,"varObjCont",data_train))
 #  [1] 0.2641553 0.3065001 0.3043884 0.4361305 0.3907899 0.4130105 0.4057227 0.4295213 0.4191222 0.4319629
-
+# [1] 0.2641553 0.3065001 0.3043884 0.4361305 0.3907899 0.4130105 0.4057227 0.4295213 0.4191222 0.4319629 0.3072121 0.4361305
+#[13] 0.3916654 0.4064711 0.4197196 0.4319629
 xxx <- sapply(modelos,function(x) Rsq(x,"varObjCont",data_train))
 yyy <- sapply(modelos,function(x) Rsq(x,"varObjCont",data_test))
 zzz <- xxx - yyy
