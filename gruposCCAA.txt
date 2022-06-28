@@ -1,0 +1,41 @@
+Andalucía       773  9.5  9.5
+Melilla           1  0.0  0.0
+Ceuta             1  0.0  0.0
+Canarias         88  1.1  1.1
+
+Aragón          731  9.0  9.0
+
+Cataluña        947 11.7 11.7
+
+CastillaLeón   2248 27.7 27.7
+
+CastillaMancha  919 11.3 11.3
+
+
+ComValenciana   542  6.7  6.7
+Murcia           45  0.6  0.6
+Baleares         67  0.8  0.8
+
+Extremadura     387  4.8  4.8
+
+Galicia         313  3.9  3.9
+
+Madrid          179  2.2  2.2
+
+
+Navarra         272  3.4  3.4
+PaísVasco       243  3.0  3.0
+Rioja           174  2.1  2.1
+Cantabria       102  1.3  1.3
+Asturias         78  1.0  1.0
+
+
+datos$CCAA<-car::recode(datos$CCAA, "c('Andalucía','Melilla','Ceuta','Canarias')='AndalucíaAfrica';c('ComValenciana','Murcia','Baleares')='EsteBalear';c('Navarra','PaísVasco','Rioja','Cantabria','Asturias')='CachopoVino'")
+
+
+
+
+
+
+
+

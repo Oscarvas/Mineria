@@ -1,0 +1,83 @@
+Outliers identified in input$Censo: 797 from 8110 observations
+Do you want to replace outliers with NA? [yes/no]: 
+Nothing changed
+
+Outliers identified in input$Population: 813 from 8110 observations
+Do you want to replace outliers with NA? [yes/no]: 
+Nothing changed
+
+Outliers identified in input$Age_under19_Ptge: 0 from 8110 observations
+Do you want to replace outliers with NA? [yes/no]: 
+Nothing changed
+
+Outliers identified in input$Age_over65_Ptge: 0 from 8110 observations
+Do you want to replace outliers with NA? [yes/no]: 
+Nothing changed
+
+Outliers identified in input$WomanPopulationPtge: 108 from 8110 observations
+Do you want to replace outliers with NA? [yes/no]: y
+Outliers successfully removed
+
+Outliers identified in input$ForeignersPtge: 125 from 8110 observations
+Do you want to replace outliers with NA? [yes/no]: y
+Outliers successfully removed
+
+Outliers identified in input$UniversityPtge: 25 from 8104 observations
+Do you want to replace outliers with NA? [yes/no]: y
+Outliers successfully removed
+
+Outliers identified in input$Empresas: 64 from 8110 observations
+Do you want to replace outliers with NA? [yes/no]: y
+Outliers successfully removed
+
+Outliers identified in input$Densidad: 927 from 8110 observations
+Do you want to replace outliers with NA? [yes/no]: 
+Nothing changed
+
+Outliers identified in input$PobChange_pct: 68 from 8103 observations
+Do you want to replace outliers with NA? [yes/no]: y
+Outliers successfully removed
+
+Outliers identified in input$PersonasInmueble: 0 from 8105 observations
+Do you want to replace outliers with NA? [yes/no]: 
+Nothing changed
+
+Outliers identified in input$Explotaciones: 44 from 8110 observations
+Do you want to replace outliers with NA? [yes/no]: y
+Outliers successfully removed
+
+Outliers identified in input$UnemploymentPtge: 7 from 8108 observations
+Do you want to replace outliers with NA? [yes/no]: y
+Outliers successfully removed
+
+Outliers identified in input$WomenUnemploymentPtge: 0 from 8109 observations
+Do you want to replace outliers with NA? [yes/no]: 
+Nothing changed
+
+Outliers identified in input$UnemployLess25_Ptge: 82 from 8109 observations
+Do you want to replace outliers with NA? [yes/no]: y
+Outliers successfully removed
+
+Outliers identified in input$UnemployMore40_Ptge: 0 from 8109 observations
+Do you want to replace outliers with NA? [yes/no]: 
+Nothing changed
+
+Outliers identified in input$AgricultureUnemploymentPtge: 178 from 8109 observations
+Do you want to replace outliers with NA? [yes/no]: y
+Outliers successfully removed
+
+Outliers identified in input$IndustryUnemploymentPtge: 72 from 8109 observations
+Do you want to replace outliers with NA? [yes/no]: y
+Outliers successfully removed
+
+Outliers identified in input$ConstructionUnemploymentPtge: 195 from 8109 observations
+Do you want to replace outliers with NA? [yes/no]: y
+Outliers successfully removed
+
+Outliers identified in input$ServicesUnemploymentPtge: 0 from 8109 observations
+Do you want to replace outliers with NA? [yes/no]: 
+Nothing changed
+
+Outliers identified in input$AutonomosPtge: 27 from 8094 observations
+Do you want to replace outliers with NA? [yes/no]: y
+Outliers successfully removed

@@ -162,11 +162,11 @@ par(mar=c(3, 12, 4.1, 2.1))
 importanciaVariables(modelo1)
 
 modelo2<-lm(varObjCont~CCAA+Censo+UnemploymentPtge+ForeignersPtge+Age_under19_Ptge+Age_over65_Ptge+ConstructionUnemploymentPtge+
-              prop_missings+UniversityPtge+UnemployMore40_Ptge+ServicesUnemploymentPtge,data=data_train)
+              prop_missings+UniversityPtge+UnemployMore40_Ptge+ServicesUnemploymentPtge+Explotaciones,data=data_train)
 Rsq(modelo2,"varObjCont",data_train)
-## [1] 0.2465246
+## [1] 0.2641553
 Rsq(modelo2,"varObjCont",data_test)
-## [1] 0.2199156
+## [1] 0.2348144
 importanciaVariables(modelo2)
 
 modelo3<-lm(varObjCont~CCAA+Censo+Population+Age_under19_Ptge+Age_over65_Ptge+
@@ -247,11 +247,11 @@ modelo8<-lm(varObjCont~CCAA+Censo+Population+Age_under19_Ptge+Age_over65_Ptge+
               PartidoCCAA+UnemploymentPtge+
               AgricultureUnemploymentPtge+
               ConstructionUnemploymentPtge+
-              Age_under19_Ptge:Age_over65_Ptge,data=data_train)
+              Age_under19_Ptge:CCAA,data=data_train)
 Rsq(modelo8,"varObjCont",data_train)
-## [1] 0.3274342
+## [1] 0.3222164
 Rsq(modelo8,"varObjCont",data_test)
-## [1] 0.2898215
+## [1] 0.283913
 importanciaVariables(modelo8) # comprobamos como se comportan los extremos poblacionales
 
 modelos<-list(modelo1,modelo2,modelo3,modelo4,modelo5,modelo6,modelo7,modelo8)
@@ -259,16 +259,35 @@ sapply(modelos,function(x) x$rank)
 # [1] 37 21 31 27 24 25 33 25
 
 sapply(modelos,function(x) Rsq(x,"varObjCont",data_train))
-# [1] 0.3072121 0.2465246 0.3068870 0.3059955 0.3043884 0.3043988 0.3214676 0.3274342
+# [1] 0.3072121 0.2641553 0.3068870 0.3059955 0.3043884 0.3043988 0.3214676 0.3222164
 
 sapply(modelos,function(x) Rsq(x,"varObjCont",data_test))
-# [1] 0.2685207 0.2199156 0.2691425 0.2681380 0.2718368 0.2716129 0.2843576 0.2898215
+# [1] 0.2685207 0.2348144 0.2691425 0.2681380 0.2718368 0.2716129 0.2843576 0.2839130
 
 
 # Diferencias de los modelos entre train y test
-# [1] 0.0386914 0.0266090 0.0377445 0.0378575 0.0325516 0.0327859 0.0371100 0.0376127
+# [1] 0.0386914 0.0266090 0.0377445 0.0378575 0.0325516 0.0327859 0.0371100 0.0383034
 
-# Aunque los resultados arrojan el modelo2 como más simple, elijo el modelo5 por presentar un r2 algo más elevado
-# y tener la siguiente varianza reducida
+# Teniendo en cuenta el valor del r2 y la varianza respecto al conjunto de datos de test, podemos determinar que el 
+# mejor modelo manual es el 2, puesto que tiene la menor complejidad, estima un 26% de los datos y sobre todo
+# es el que tiene la menor varianza de todos los modelos planteados y pore tanto es mas fiable
 
-coef(modelo5)
+coef(modelo2)
+
+##################### seleccion de variables y modelos de regresion
+#install.packages('OneR')
+library(OneR)
+summary(input)
+TransfCont<-Transf_Auto(Filter(is.numeric, input[,-c(25,26)]),varObjCont)
+names(TransfCont)
+
+# discretizacion
+discCont<-droplevels(optbin(data.frame(Filter(is.numeric, input[,-c(25,26)]),
+                                       bin(varObjCont,nbins=5,method = "content"))))[,
+                                      -(ncol(Filter(is.numeric, input[,-c(25,26)]))+1)]
+names(discCont)<-paste("disc", names(discCont), sep = "_")
+
+
+apply(discCont,2,freq)
+
+# disc_UnemployLess25_Ptge,disc_UnemployMore40_Ptge,disc_AgricultureUnemploymentPtge ,disc_IndustryUnemploymentPtge,disc_ServicesUnemploymentPtge, disc_AutonomosPtge
