@@ -372,7 +372,116 @@ modeloManual$rank # 22
 null<-lm(varObjCont~1, data=data_train) #Modelo minimo
 full<-lm(varObjCont~., data=data_train[,c(1:27)])
 
-#
+# MOdelo step
 modeloStepAIC<-step(null, scope=list(lower=null, upper=full), direction="both")
 Rsq(modeloStepAIC,"varObjCont",data_test) # 0.2688144
 modeloStepAIC$rank # 29
+
+# Modelo backwards
+modeloBackAIC<-step(full, scope=list(lower=null, upper=full), direction="backward")
+Rsq(modeloBackAIC,"varObjCont",data_test) # 0.2691425
+modeloBackAIC$rank # 31
+
+#### ambos modelos AIC son bastante similares
+
+modeloStepBIC<-step(null, scope=list(lower=null, upper=full), direction="both",
+                    k=log(nrow(data_train)))
+Rsq(modeloStepBIC,"varObjCont",data_test) # 0.2718368
+modeloStepBIC$rank # 24, mejora un poco al manual sin añadir mucha complejidad
+
+modeloBackBIC<-step(full, scope=list(lower=null, upper=full), direction="backward",
+                    k=log(nrow(data_train)))
+Rsq(modeloBackBIC,"varObjCont",data_test) # 0.2718368
+modeloBackBIC$rank # 24
+
+##### ambos modelos BIC son iguales
+
+## Selección de variables con las input originales e interacciones:
+
+fullInt<-lm(varObjCont~.^2,data=data_train[,c(1:27)])
+#El backward puede ser muy lento (o incluso no funcionar) cuando hay muchos posibles efectos
+# No lo realizo por abreviar, pero sería recomendable probarlo
+modeloStepAIC_int<-step(null, scope=list(lower=null, upper=fullInt), direction="both",
+                        trace=F)
+# en mi máquina tarda unos 3-4 minutos
+Rsq(modeloStepAIC_int,"varObjCont",data_test) # 0.3547828
+modeloStepAIC_int$rank # 161 ------- estamos locos
+
+##
+modeloStepBIC_int<-step(null, scope=list(lower=null, upper=fullInt), direction="both",
+                        k=log(nrow(data_train))) # 45 segundos
+Rsq(modeloStepBIC_int,"varObjCont",data_test) # 0.3389092
+modeloStepBIC_int$rank # 46 .....
+
+#Selección de variables con las input originales y transformadas:
+fullT<-lm(varObjCont~., data=data_train[,c(1:46)])
+modeloStepAIC_trans<-step(null, scope=list(lower=null, upper=fullT), direction="both"
+                          ,trace=F)
+Rsq(modeloStepAIC_trans,"varObjCont",data_test) # 0.3774476
+modeloStepAIC_trans$rank # 36 ... nos acercamos a otros modelos manuales
+##
+modeloStepBIC_trans<-step(null, scope=list(lower=null, upper=fullT), direction="both",
+                          k=log(nrow(data_train)),trace=F)
+Rsq(modeloStepBIC_trans,"varObjCont",data_test) # 0.3736192
+modeloStepBIC_trans$rank # 23 .... bastaaaante mejor al modelo manual elegido
+
+
+## Selección de variables con las input originales, transformadas y discretizadas:
+fulltodo<-lm(varObjCont~., data=data_train)
+modeloStepAIC_todo<-step(null, scope=list(lower=null, upper=fulltodo), direction="both",trace=F)
+Rsq(modeloStepAIC_todo,"varObjCont",data_test) # 0.384078
+modeloStepAIC_todo$rank # 60... mucha complejidad
+
+#
+modeloStepBIC_todo<-step(null, scope=list(lower=null, upper=fulltodo), direction="both",
+                         k=log(nrow(data_train)),trace=F)
+Rsq(modeloStepBIC_todo,"varObjCont",data_test) # 0.3830574
+modeloStepBIC_todo$rank # 33
+
+
+### Selección de variables con las input originales, transformadas, discretizadas e interacciones (pruebo sólo
+#con BIC pues es más exigente con el número de parámetros y, por tanto, tarda menos en ejecutarse,
+# pero podrían probarse ambos
+
+fullIntT<-lm(varObjCont~.^2, data=data_train)
+modeloStepBIC_todoInt<-step(null, scope=list(lower=null, upper=fullIntT), direction="both",
+                            k=log(nrow(data_train)),trace=F) # 3-4 minutos de ejecucion
+Rsq(modeloStepBIC_todoInt,"varObjCont",data_test) # 0.4043833
+modeloStepBIC_todoInt$rank # 40
+
+# Comparación de modelos de regresión lineal
+modelos<-list(modeloManual,modeloStepAIC,modeloStepBIC,modeloStepAIC_int,modeloStepBIC_int,
+              modeloStepAIC_trans,modeloStepBIC_trans,modeloStepAIC_todo,modeloStepBIC_todo,
+              modeloStepBIC_todoInt) #incluir los modelos que se desee comparar
+
+sapply(modelos,function(x) x$rank)
+# [1]  22  29  24 161  46  36  23  60  33  40
+
+sapply(modelos,function(x) Rsq(x,"varObjCont",data_test))
+#  [1] 0.2348144 0.2688144 0.2718368 0.3547828 0.3389092 0.3774476 0.3736192 0.3840780 0.3830574 0.4043833
+
+sapply(modelos,function(x) Rsq(x,"varObjCont",data_train))
+#  [1] 0.2641553 0.3065001 0.3043884 0.4361305 0.3907899 0.4130105 0.4057227 0.4295213 0.4191222 0.4319629
+
+xxx <- sapply(modelos,function(x) Rsq(x,"varObjCont",data_train))
+yyy <- sapply(modelos,function(x) Rsq(x,"varObjCont",data_test))
+zzz <- xxx - yyy
+zzz # calculando la varianza
+# [1] 0.02934091 0.03768572 0.03255160 0.08134771 0.05188068 0.03556284 0.03210342 0.04544329 0.03606476 0.02757961
+
+### Finalmente, llevamos a cabo validación cruzada repetida para evaluar los modelos, tanto en sesgo como en varianza:
+vcrTodosModelos<-list()
+formulaModelos<-sapply(modelos,formula)
+for (i in 1:length(modelos)){
+  set.seed(1712)
+  vcr<-train(as.formula(formulaModelos[[i]]), data = data_train,
+             method = "lm",
+             trControl = trainControl(method="repeatedcv", number=5, repeats=20)
+  )
+  vcrTodosModelos[[i]]<-vcr
+}
+names(vcrTodosModelos)<-paste0("Model",1:length(modelos),
+                               "_",sapply(modelos,function(x) x$rank))
+bwplot(resamples(vcrTodosModelos),metric=c("Rsquared"))
+
+summary(resamples(vcrTodosModelos),metric=c("Rsquared"))
