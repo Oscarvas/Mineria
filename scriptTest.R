@@ -449,6 +449,11 @@ modeloStepBIC_todoInt<-step(null, scope=list(lower=null, upper=fullIntT), direct
 Rsq(modeloStepBIC_todoInt,"varObjCont",data_test) # 0.4043833
 modeloStepBIC_todoInt$rank # 40
 
+#AIC - Abortado--- cómputo superior a 10 minutos...
+modeloStepAIC_todoInt<-step(null, scope=list(lower=null, upper=fullIntT), direction="both",trace=F) # 3-4 minutos de ejecucion
+Rsq(modeloStepAIC_todoInt,"varObjCont",data_test) # 
+modeloStepAIC_todoInt$rank # 
+
 # Comparación de modelos de regresión lineal
 modelos<-list(modeloManual,modeloStepAIC,modeloStepBIC,modeloStepAIC_int,modeloStepBIC_int,
               modeloStepAIC_trans,modeloStepBIC_trans,modeloStepAIC_todo,modeloStepBIC_todo,
@@ -485,3 +490,17 @@ names(vcrTodosModelos)<-paste0("Model",1:length(modelos),
 bwplot(resamples(vcrTodosModelos),metric=c("Rsquared"))
 
 summary(resamples(vcrTodosModelos),metric=c("Rsquared"))
+
+### Elección del mejor modelo:
+
+'
+Si retiramos  aquellos modelos que al menos duplican el número de parámetros, eliminamos los modelos: 10, 8, 5, 4
+De los modelos restantes, el rango de parámetros queda en (22-36), si tenemos en cuenta los modelos 6 y 7, nos quedamos con el 7
+ya que sus valores son muy similares pero usa 13 parámetros menos!!!
+Otra opción para compara es el modelo 9, cuya media es similiar pero tiene 10 parámetros extras.
+
+En este caso, el modelo ganador es el 7 - modeloStepBIC_trans
+'
+coef(modeloStepBIC_trans)
+par(mar=c(4, 15, 4.1, 2.1))
+importanciaVariables(modeloStepBIC_todo)
